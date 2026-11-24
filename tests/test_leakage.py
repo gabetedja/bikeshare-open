@@ -8,7 +8,7 @@ import pandas as pd
 import pytest
 
 from src.config import FORBIDDEN, TARGET
-from src.features import build_features, feature_columns
+from src.features import build_features, feature_columns, encode_weather
 from src.ingest import load_raw
 
 
@@ -83,6 +83,17 @@ def test_rolling_mean_excludes_today(feats):
 
 def test_no_missing_values(feats):
     assert feats[feature_columns(feats)].isna().sum().sum() == 0
+
+
+def test_weather_encoder_rejects_unknown_label():
+    """encode_weather must raise ValueError for labels outside GOOD/MISTY/BAD."""
+    # This tests the fault-injection from Exercise 2, Fault #3:
+    # The encoder previously silently mapped unknown labels to NaN,
+    # which dropna() would remove without any warning.
+    unknown_label = "STORMY"
+    series = pd.Series([unknown_label])
+    with pytest.raises(ValueError, match="unmapped weather labels"):
+        encode_weather(series)
 
 
 def test_dates_are_sorted_and_unique(feats):
