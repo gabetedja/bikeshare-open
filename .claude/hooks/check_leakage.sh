@@ -19,7 +19,7 @@ case "$path" in
 esac
 
 cd "${CLAUDE_PROJECT_DIR:-.}" || exit 0
-if ! out=$(python -m pytest tests/test_leakage.py -q 2>&1); then
+if ! out=$(./.venv/bin/python -m pytest tests/test_leakage.py -q 2>&1); then
   echo "Leakage tests failed after editing $path:" >&2
   echo "$out" | tail -20 >&2
   exit 2
