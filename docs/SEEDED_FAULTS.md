@@ -176,3 +176,85 @@ the seven-day rolling average.
 ### Git evidence
 Fault commit: c5af8af
 Repair commit: 4234bbe
+
+
+## Fault 3: Missing Weather Encoder Validation
+
+### Intentional change
+
+Modified `encode_weather()` in `src/features.py` by removing the validation that raises a `ValueError` for unknown weather labels.
+
+The original implementation checked for labels absent from `WEATHER_ORDER` and rejected them.
+
+The faulty implementation simply returns:
+
+    return series.map(WEATHER_ORDER).astype(float)
+
+Unknown labels such as `"STORMY"` now become `NaN` instead of causing an exception. Downstream `dropna()` may silently remove these rows.
+
+### Hook stderr
+
+No hook failure has been confirmed from the available output.
+
+### Initial test results
+
+After introducing the fault, I ran `make test`.
+
+Result: 16 tests passed.
+
+The existing tests did not detect the missing input validation, revealing a gap in test coverage.
+
+### Regression test
+
+
+
+### Failing test output
+
+============================= test session starts ==============================
+platform darwin -- Python 3.12.11, pytest-9.1.1, pluggy-1.7.0 -- /Users/gabrieltedja/Documents/DSC180A/bikeshare-open/.venv/bin/python
+cachedir: .pytest_cache
+rootdir: /Users/gabrieltedja/Documents/DSC180A/bikeshare-open
+plugins: anyio-4.16.0
+collecting ... collected 1 item
+
+tests/test_leakage.py::test_weather_encoder_rejects_unknown_label FAILED [100%]
+
+=================================== FAILURES ===================================
+__________________ test_weather_encoder_rejects_unknown_label __________________
+
+    def test_weather_encoder_rejects_unknown_label():
+        """encode_weather must raise ValueError for labels outside GOOD/MISTY/BAD."""
+        # This tests the fault-injection from Exercise 2, Fault #3:
+        # The encoder previously silently mapped unknown labels to NaN,
+        # which dropna() would remove without any warning.
+        unknown_label = "STORMY"
+        series = pd.Series([unknown_label])
+>       with pytest.raises(ValueError, match="unmapped weather labels"):
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE ValueError
+
+tests/test_leakage.py:95: Failed
+=========================== short test summary info ============================
+FAILED tests/test_leakage.py::test_weather_encoder_rejects_unknown_label - Fa...
+============================== 1 failed in 0.90s ===============================
+
+### Repair
+Claude restored the unknown-label validation in `encode_weather()`.
+The encoder now raises `ValueError` for labels outside
+`WEATHER_ORDER`, rather than silently mapping them to NaN.
+
+### Repair turns
+1 repair turn. Claude restored the validation on its first
+repair attempt.
+
+### Verification
+Ran `make test` after restoring the validation.
+
+Result: 17 passed in 2.51s.
+
+The new regression test now passes.
+
+### Git evidence
+Fault commit: c10f11a
+Regression test commit: 4021b01
+Repair commit: c10e1fb
