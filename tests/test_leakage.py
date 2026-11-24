@@ -47,6 +47,30 @@ def test_lag_is_not_the_target(feats):
     assert not (feats.cnt_lag_1 == feats[TARGET]).all()
 
 
+def test_cnt_roll_3_missing_date_exists_and_is_correct(feats):
+    """Verify cnt_roll_3 uses the previous three calendar days."""
+    target_date = pd.Timestamp("2012-01-14")
+    by_date = feats.set_index("dteday")
+
+    prior_days = [
+        target_date - pd.Timedelta(days=k)
+        for k in (1, 2, 3)
+    ]
+
+    # Historical dates must actually exist.
+    assert target_date in by_date.index
+    assert all(d in by_date.index for d in prior_days)
+
+    # Independently calculate the expected value.
+    expected = sum(by_date.loc[d, TARGET] for d in prior_days) / 3
+
+    # This should FAIL until the feature is implemented.
+    assert "cnt_roll_3" in by_date.columns, "cnt_roll_3 feature is missing"
+
+    actual = by_date.loc[target_date, "cnt_roll_3"]
+    assert actual == pytest.approx(expected)
+
+
 def test_rolling_mean_excludes_today(feats):
     """cnt_roll_7 must be the mean of the 7 calendar days *before* today."""
     by_date = feats.set_index("dteday")[TARGET]
