@@ -22,7 +22,12 @@ DATA_URL = (
 
 TARGET = "cnt"
 
-# --- Three reasons a column is kept out of the feature set --------------
+# Raw columns approved as direct model inputs. This allowlist is deliberately
+# independent of feature_columns(): schema drift must require an explicit
+# review instead of becoming approved merely because a new column is numeric.
+APPROVED_RAW_FEATURES = {"temp", "atemp", "hum", "windspeed"}
+
+# --- Reasons a column is kept out of the feature set --------------------
 
 # 1. Leakage: the target or an arithmetic restatement of it.
 #    casual + registered == cnt exactly, on every row. A model handed these
@@ -42,8 +47,20 @@ TIME_INDEX_COLS = {"instant", "yr", "days_since_2011"}
 #    build our own lags from the target and test those instead.
 UNVERIFIED_COLS = {"cnt_2d_bfr"}
 
+# 4. Raw categoricals: these are not direct model inputs. Holiday, workday,
+#    and weather receive explicit numeric encodings in src/features.py; the
+#    remaining calendar labels are redundant with features derived from date.
+RAW_CATEGORICAL_COLS = {
+    "season",
+    "mnth",
+    "holiday",
+    "weekday",
+    "workday",
+    "weather",
+}
+
 # What feature_columns() and the tests actually enforce.
-FORBIDDEN = LEAKAGE_COLS | TIME_INDEX_COLS | UNVERIFIED_COLS
+FORBIDDEN = LEAKAGE_COLS | TIME_INDEX_COLS | UNVERIFIED_COLS | RAW_CATEGORICAL_COLS
 
 # Temporal split: train on 2011, validate on H1 2012, test on H2 2012.
 TRAIN_END = "2011-12-31"

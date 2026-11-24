@@ -3,7 +3,7 @@ import pandas as pd
 import pytest
 from sklearn.metrics import r2_score
 
-from src.config import LAG_WARMUP, TARGET
+from src.config import APPROVED_RAW_FEATURES, FORBIDDEN, LAG_WARMUP, TARGET
 from src.features import build_features, feature_columns, reindex_to_calendar
 from src.ingest import load_raw
 from src.train import MODELS, temporal_split
@@ -17,6 +17,12 @@ def raw():
 @pytest.fixture(scope="module")
 def feats(raw):
     return build_features(raw)
+
+
+def test_every_raw_column_is_classified(raw):
+    """Schema drift must not leave a raw column without a disposition."""
+    unclassified = set(raw.columns) - FORBIDDEN - APPROVED_RAW_FEATURES - {"dteday"}
+    assert not unclassified, f"unclassified raw columns: {sorted(unclassified)}"
 
 
 def test_calendar_is_complete_before_lagging(raw):
