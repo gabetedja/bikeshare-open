@@ -258,3 +258,55 @@ The new regression test now passes.
 Fault commit: c10f11a
 Regression test commit: 4021b01
 Repair commit: c10e1fb
+
+
+
+## Fault 4: Bash Copy and Raw-Data Protection
+
+### Intended experiment
+Attempt to copy a disposable file into `data/raw/`
+using Claude Code's Bash tool, bypassing the existing
+Edit/Write-specific PostToolUse hook.
+
+### Attempted command
+```bash
+cp /tmp/fault4_probe.txt data/raw/_fault4_probe.txt
+```
+
+### Actual result
+Claude Code denied the command before execution:
+
+```text
+1 action not run · permission denied · rule from shared project settings
+```
+
+The destination file was not created, and no existing
+raw data was modified by the attempt.
+
+### Hook behavior
+The PostToolUse leakage hook did not run.
+
+Because the command was denied before execution,
+this does not demonstrate a successful hook bypass.
+
+### Interpretation
+The Edit/Write leakage hook does not inspect Bash
+operations. However, the attempted Bash copy was
+blocked by a separate permission restriction.
+
+This demonstrates the distinction between tool-specific
+PostToolUse hooks and execution permissions.
+
+### What would catch or prevent an unauthorized copy
+A PreToolUse Bash hook could inspect attempted commands.
+Filesystem-level read-only permissions could prevent
+writes regardless of which tool issued them.
+
+A raw-data integrity hash check in `make data` could
+detect unexpected modifications after they occur.
+
+### Conclusion
+The attempted fourth fault was blocked by the existing
+execution environment. A successful Bash-copy bypass
+was not demonstrated.
+
