@@ -112,7 +112,7 @@ All leakage checks completed.
 
 Codex used our project's virtual environment (NumPy 2.5.3, pandas 3.0.5, scikit-learn 1.9.1) to load the peer's tracked CSV and run the peer's feature builder in memory. The CSV's SHA-256 matched the configured digest. The checkout had no processed Parquet, so the check covers a fresh build from the audited commit. The exact data or script that produced Claude's reported result could not be verified.
 
-The separate Claude Agent SDK artifact `reports/audit.jsonl` is missing. The checked configuration points to local Ollama with the Qwen-backed `bikeshare-coder` default, and the configuration review found no ready alternative. The SDK audit was left unrun. The findings below come from Codex's independent verification.
+The peer findings below come from Codex's independent verification. The separate self-audit and its provenance are recorded at the end of this document.
 
 ### Target leakage
 
@@ -148,3 +148,13 @@ This is a confirmed reproducibility discrepancy for the exact HGB scores. In bot
 ## My provisional verdict
 
 I would provisionally accept the peer's one-day-ahead comparison. The date-aligned evidence rules out the reported lag leakage for the audited commit, and the split and baselines support the main comparison. I would qualify the reported HGB scores until the discrepancy is explained. I provisionally favor persistence if typical absolute error and operational simplicity matter most, and Ridge if larger errors should carry more weight. This verdict assumes yesterday's count and the weather inputs are available at forecast time.
+
+## Self-audit fallback (Codex)
+
+The Claude Agent SDK connectivity probe succeeded. The full self-audit against local Ollama timed out after 119.03 seconds with exit code 124 and an `unrecognized_model` warning. It produced no candidate JSONL. The later 15-minute attempt was stopped at my request before it returned a record.
+
+`reports/audit.jsonl` contains one independently verified Codex self-audit record for commit `d3ef964`. It uses the runner's report schema and includes provenance identifying Codex as the generator and the SDK audit as incomplete.
+
+Codex rebuilt the features from the unchanged raw CSV and joined the retained rows to raw counts by date. All 714 one-day lags matched the previous calendar day's count, and zero matched the current day's count. The seven-day lag and both trailing means matched independent prior-day calculations. None of the 15 selected features was forbidden. The splits were disjoint and chronological, with 348 training, 182 validation, and 184 test rows. Training-only refits of all four official models reproduced every saved validation and test R² and MAE to the reported precision.
+
+The results assume same-day weather inputs are available at forecast issuance. The training selector also relies on the raw-schema test to flag unexpected numeric inputs before they can enter the model. Neither caveat revealed target leakage in the audited data. The substitute supplies methodology evidence. A grading requirement for a completed Claude Agent SDK run remains unmet.
