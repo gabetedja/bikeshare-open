@@ -2,6 +2,9 @@
 __pycache__/
 .pytest_cache/
 data/processed/
-reports/
-audit.jsonl
+/reports/*
+!/reports/metrics.json
+!/reports/audit.jsonl
+/audit.jsonl
+.DS_Store
 .claude/settings.local.json

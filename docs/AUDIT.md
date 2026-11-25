@@ -8,7 +8,7 @@
 
 Claude Code inspected the peer repository, but repeated Ollama API errors prevented it from producing a final report. Its verification script reportedly found that `cnt_lag_1` equaled `cnt` on every processed row. That result was unverified and conflicted with the source, which shifts the target by one row after reindexing to a daily calendar.
 
-**Paste the original Claude auditor output verbatim below, including the verification script output and Ollama errors as captured.**
+**Transcript from the incomplete Claude Code run.** The excerpt includes the script's reported finding and an Ollama API retry.
 
 ```text
 ❯ Audit the repository located at ../bikeshare-peer-audit, not the current bikeshare-open repository.
@@ -111,6 +111,8 @@ All leakage checks completed.
 ## Independent verification (Codex)
 
 Codex used our project's virtual environment (NumPy 2.5.3, pandas 3.0.5, scikit-learn 1.9.1) to load the peer's tracked CSV and run the peer's feature builder in memory. The CSV's SHA-256 matched the configured digest. The checkout had no processed Parquet, so the check covers a fresh build from the audited commit. The exact data or script that produced Claude's reported result could not be verified.
+
+The separate Claude Agent SDK artifact `reports/audit.jsonl` is missing. The checked configuration points to local Ollama with the Qwen-backed `bikeshare-coder` default, and the configuration review found no ready alternative. The SDK audit was left unrun. The findings below come from Codex's independent verification.
 
 ### Target leakage
 
